@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.time.temporal.ChronoUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -63,7 +64,7 @@ public class GradeReport {
                 } else {
                     BigDecimal raw = (BigDecimal) row.get("raw_points");
                     BigDecimal max = (BigDecimal) row.get("max_points");
-                    BigDecimal grade = raw.multiply(new BigDecimal("20")).divide(max, 1, RoundingMode.HALF_UP);
+                    BigDecimal grade = penalizedGrade(raw, max, deadline, submittedAt);
                     line.put("status", "CORRIGÉ");
                     line.put("grade", grade);
                     line.put("feedback", row.get("feedback"));
@@ -82,5 +83,14 @@ public class GradeReport {
         report.put("exercises", lines);
         report.put("average", graded == 0 ? null : total.divide(new BigDecimal(graded), 2, RoundingMode.HALF_UP));
         return report;
+    }
+
+
+    public static BigDecimal penalizedGrade(BigDecimal raw, BigDecimal max, LocalDate deadline, LocalDateTime submittedAt) {
+        BigDecimal grade = raw.multiply(new BigDecimal("20")).divide(max, 10, RoundingMode.HALF_UP);
+        long daysLate = Math.max(0, ChronoUnit.DAYS.between(deadline, submittedAt.toLocalDate()));
+        BigDecimal rate = new BigDecimal("0.10").multiply(BigDecimal.valueOf(Math.min(daysLate, 5)));
+        grade = grade.multiply(BigDecimal.ONE.subtract(rate));
+        return grade.max(BigDecimal.ZERO).setScale(1, RoundingMode.HALF_UP);
     }
 }
