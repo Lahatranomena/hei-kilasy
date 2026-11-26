@@ -4,7 +4,7 @@ Outil utilisé : Claude (Anthropic), via claude.ai, avec IntelliJ IDEA pour le c
 
 ## Changement : C1 — Pénalité de retard
 
-### Échange 1 — 08:02
+### Échange 1 — [08:02]
 Demande : « Aide-moi à configurer le projet, pourquoi la connexion à la base échoue ? »
 
 Proposition : un PostgreSQL installé sur Windows occupait déjà le port 5432 et refusait l'utilisateur kilasy. L'IA a proposé de changer le port du conteneur Docker en 5433 dans compose.yaml et dans l'URL de application.properties.
@@ -49,3 +49,29 @@ Vérification : Felix reçoit l'email et le SMS simulé. Avec la panne simulée,
 
 ## Bilan C2
 - Fichiers modifiés : SubmissionController.java
+
+## Changement : C3 — Exercices minutés
+
+### Échange 1 — [19:00]
+
+**Demande :** « Je souhaite ajouter la possibilité de définir une durée en minutes pour un exercice. Le chronomètre doit commencer lorsque l'étudiant ouvre l'exercice et la soumission doit être refusée lorsque le temps est écoulé. Il faut conserver le fonctionnement des exercices existants et afficher le temps utilisé dans le relevé de notes. »
+
+**Proposition :** Claude a proposé d'ajouter le champ `durationMinutes`, de rendre l'échéance facultative et de créer une table `exercise_start` pour enregistrer le début du chronomètre de chaque étudiant. Il a également proposé un nouvel endpoint `/exercises/{id}/start`, une vérification du temps lors de la soumission et l'affichage du temps utilisé dans le relevé de notes et l'export CSV.
+
+**Décision :** gardé, avec les adaptations nécessaires.
+
+**Pourquoi :** cette solution permet de gérer les exercices minutés sans supprimer la possibilité d'utiliser une échéance classique. Elle conserve également la pénalité de retard du C1.
+
+**Vérification :** création d'un exercice minuté, démarrage du chronomètre et vérification de la soumission après expiration. L'API renvoie bien une erreur HTTP 422 avec le message indiquant que les 2 minutes sont écoulées. Les résultats attendus s'affichent également.
+
+### Bilan C3
+
+- Fichiers modifiés :
+    - `CsvExport.java`
+    - `Exercise.java`
+    - `ExerciseController.java`
+    - `GradeReport.java`
+    - `SubmissionController.java`
+    - `schema.sql`
+
+- Fonctionnalités ajoutées : durée en minutes, démarrage du chronomètre, refus des soumissions après expiration et affichage du temps utilisé.

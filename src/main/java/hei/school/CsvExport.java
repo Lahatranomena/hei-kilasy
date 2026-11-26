@@ -34,7 +34,7 @@ public class CsvExport {
             if (row.get("raw_points") != null) {
                 BigDecimal g = GradeReport.penalizedGrade(
                         (BigDecimal) row.get("raw_points"), (BigDecimal) row.get("max_points"),
-                        ((java.sql.Date) row.get("deadline")).toLocalDate(),
+                        row.get("deadline") == null ? null : ((java.sql.Date) row.get("deadline")).toLocalDate(),
                         ((java.sql.Timestamp) row.get("submitted_at")).toLocalDateTime());
                 note = g.toPlainString().replace('.', ',');
             }

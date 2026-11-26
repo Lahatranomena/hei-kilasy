@@ -40,3 +40,14 @@ CREATE TABLE IF NOT EXISTS submission
     graded_at    TIMESTAMP,
     UNIQUE (exercise_id, student_id)
 );
+
+ALTER TABLE exercise ADD COLUMN IF NOT EXISTS duration_minutes INTEGER;
+ALTER TABLE exercise ALTER COLUMN deadline DROP NOT NULL;
+
+CREATE TABLE IF NOT EXISTS exercise_start
+(
+    exercise_id BIGINT    NOT NULL REFERENCES exercise (id),
+    student_id  BIGINT    NOT NULL REFERENCES student (id),
+    started_at  TIMESTAMP NOT NULL,
+    PRIMARY KEY (exercise_id, student_id)
+    );
