@@ -31,3 +31,21 @@ Vérification : une requête SQL indépendante donne 14,4 (Bob), 11,2 (Clara), 8
 
 ## Bilan
 - Fichiers modifiés : compose.yaml, application.properties, GradeReport.java, SubmissionController.java, CsvExport.java.
+
+
+## Changement : C2 — SMS de notification
+
+### Échange 1 — [12:40]
+
+Demande : « Je souhaite que l'étudiant reçoive également un SMS lorsque sa note est publiée. En utilisant les fichiers existants, propose une solution simple qui permet d'ajouter cette fonctionnalité sans perturber la publication des notes. »
+
+Proposition : dans SubmissionController, ajout d'une interface SmsSender et d'une classe LogSmsSender qui écrit « [SMS] numéro : message » dans les logs. L'envoi du SMS est effectué après celui de l'email, dans un try/catch. Une propriété sms.simulate-failure permet également de simuler une panne d'envoi.
+
+Décision : gardé.
+
+Pourquoi : cette solution permet de séparer l'envoi du SMS de la logique de notation grâce à l'interface SmsSender. Le try/catch garantit que la note reste publiée même si l'envoi du SMS échoue.
+
+Vérification : Felix reçoit l'email et le SMS simulé. Avec la panne simulée, la note de Bob reste publiée (200, grade 14,4). OK.
+
+## Bilan C2
+- Fichiers modifiés : SubmissionController.java

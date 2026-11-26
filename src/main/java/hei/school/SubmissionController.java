@@ -29,6 +29,9 @@ public class SubmissionController {
     @Autowired
     private JavaMailSender mailSender;
 
+    @Autowired
+    private SmsSender smsSender;
+
     @PostMapping("/exercises/{id}/submissions")
     public ResponseEntity<?> submit(@PathVariable long id, @RequestBody Map<String, Object> body) {
         if (body.get("studentId") == null) {
@@ -154,6 +157,16 @@ public class SubmissionController {
         mailSender.send(message);
         System.out.println("Email de note envoyé à " + row.get("email"));
 
+        String phone = (String) row.get("phone");
+        if (phone != null && !phone.isBlank()) {
+            try {
+                smsSender.send(phone, "Votre note pour « " + title + " » est disponible : "
+                        + String.valueOf(grade).replace('.', ',') + "/20.");
+            } catch (Exception e) {
+                System.out.println("Échec de l'envoi du SMS à " + phone + " : " + e.getMessage());
+            }
+        }
+
         Map<String, Object> result = new HashMap<>();
         result.put("id", id);
         result.put("rawPoints", points);
@@ -162,5 +175,24 @@ public class SubmissionController {
         result.put("late", late);
         result.put("feedback", feedback);
         return ResponseEntity.ok(result);
+    }
+
+    interface SmsSender {
+        void send(String phone, String text);
+    }
+
+    @org.springframework.stereotype.Component
+    static class LogSmsSender implements SmsSender {
+
+        @org.springframework.beans.factory.annotation.Value("${sms.simulate-failure:false}")
+        private boolean simulateFailure;
+
+        @Override
+        public void send(String phone, String text) {
+            if (simulateFailure) {
+                throw new RuntimeException("Panne SMS simulée");
+            }
+            System.out.println("[SMS] " + phone + " : " + text);
+        }
     }
 }
